@@ -1,12 +1,11 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>P2000 Meldingen Live</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2000 Meldingen Live - Clean</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header>
@@ -15,19 +14,19 @@
   </header>
 
   <nav>
-    <select id="regioSelector">
-      <option value="gelderland">Gelderland</option>
-      <option value="zuid-holland">Zuid-Holland</option>
-      <option value="noord-brabant">Noord-Brabant</option>
+    <select id="regioSelector" aria-label="Selecteer regio">
+      <option value="https://feeds.p2000-online.net/gelderland.xml">Gelderland</option>
+      <option value="https://feeds.p2000-online.net/zuid-holland.xml">Zuid-Holland</option>
+      <option value="https://feeds.p2000-online.net/noord-brabant.xml">Noord-Brabant</option>
     </select>
-    <input type="text" id="zoekInput" placeholder="Zoek op plaats of melding...">
+    <input type="search" id="zoekInput" placeholder="Zoek op plaats of melding..." aria-label="Zoekmeldingen" />
     <label class="toggle">
-      <input type="checkbox" id="darkToggle"> Donkere modus
+      <input type="checkbox" id="darkToggle" /> Donkere modus
     </label>
   </nav>
 
   <main>
-    <ul id="meldingenLijst">
+    <ul id="meldingenLijst" aria-live="polite" aria-busy="true">
       <li>Laden van meldingen...</li>
     </ul>
   </main>
