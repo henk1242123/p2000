@@ -1,135 +1,41 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>P2000 Meldingen Live</title>
+  <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: #f8fafc;
-      color: #1e293b;
-    }
-    header {
-      background-color: #1e293b;
-      color: white;
-      padding: 1.5rem;
-      text-align: center;
-    }
-    nav {
-      background-color: #334155;
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      padding: 0.8rem 0;
-    }
-    nav a {
-      color: #e2e8f0;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    nav a:hover {
-      color: #38bdf8;
-    }
-    main {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      margin-bottom: 2rem;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      border-bottom: 1px solid #e2e8f0;
-      padding: 0.7rem 0;
-    }
-    .time {
-      font-weight: bold;
-      margin-right: 0.5rem;
-    }
-    footer {
-      background-color: #1e293b;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-      margin-top: 3rem;
-    }
-  </style>
 </head>
 <body>
   <header>
-    <h1>P2000 Meldingen Live</h1>
-    <p>Actuele meldingen van hulpdiensten in Nederland</p>
+    <h1>P2000 Meldingen</h1>
+    <p>Live meldingen van hulpdiensten in Nederland</p>
   </header>
 
   <nav>
-    <a href="#wat">Wat is P2000?</a>
-    <a href="#meldingen">Live Meldingen</a>
-    <a href="#codes">Code-Uitleg</a>
+    <select id="regioSelector">
+      <option value="gelderland">Gelderland</option>
+      <option value="zuid-holland">Zuid-Holland</option>
+      <option value="noord-brabant">Noord-Brabant</option>
+    </select>
+    <input type="text" id="zoekInput" placeholder="Zoek op plaats of melding...">
+    <label class="toggle">
+      <input type="checkbox" id="darkToggle"> Donkere modus
+    </label>
   </nav>
 
   <main>
-    <section id="wat" class="card">
-      <h2>Wat is P2000?</h2>
-      <p>
-        P2000 is het alarmeringssysteem voor hulpdiensten in Nederland. Meldingen van brandweer, ambulance en politie
-        worden via dit systeem verzonden en zijn openbaar beschikbaar via feeds.
-      </p>
-    </section>
-
-    <section id="meldingen" class="card">
-      <h2>Live Meldingen (Gelderland)</h2>
-      <ul id="meldingenlijst">
-        <li>Meldingen worden geladen...</li>
-      </ul>
-    </section>
-
-    <section id="codes" class="card">
-      <h2>Wat betekenen de codes?</h2>
-      <ul>
-        <li><strong>A1:</strong> Ambulance spoed met optische/geluidsignalen.</li>
-        <li><strong>A2:</strong> Ambulance zonder spoed.</li>
-        <li><strong>B1:</strong> Brandweer met spoed.</li>
-        <li><strong>Prio 1:</strong> Politie inzet met hoge prioriteit.</li>
-      </ul>
-    </section>
+    <ul id="meldingenLijst">
+      <li>Laden van meldingen...</li>
+    </ul>
   </main>
 
   <footer>
-    &copy; 2025 P2000 Nederland - Bij spoed, bel altijd 112.
+    &copy; 2025 P2000 Meldingen. Bij spoedgevallen, bel 112.
   </footer>
 
-  <script>
-    async function laadMeldingen() {
-      const lijst = document.getElementById('meldingenlijst');
-      lijst.innerHTML = "<li>Meldingen worden opgehaald...</li>";
-      try {
-        const response = await fetch('proxy.php?feed=https://feeds.p2000-online.net/gelderland.xml');
-        const data = await response.json();
-        lijst.innerHTML = '';
-        data.items.slice(0, 10).forEach(item => {
-          const li = document.createElement('li');
-          li.innerHTML = `<span class="time">[${new Date(item.pubDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}]</span>${item.title}`;
-          lijst.appendChild(li);
-        });
-      } catch (e) {
-        lijst.innerHTML = "<li>Fout bij ophalen van meldingen.</li>";
-        console.error(e);
-      }
-    }
-
-    laadMeldingen();
-    setInterval(laadMeldingen, 15000); // elke 15 seconden verversen
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>
