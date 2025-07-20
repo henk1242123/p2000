@@ -1,58 +1,87 @@
+// main.js
 const lijst = document.getElementById('meldingenLijst');
 const regioSelector = document.getElementById('regioSelector');
 const zoekInput = document.getElementById('zoekInput');
 const darkToggle = document.getElementById('darkToggle');
 
-function getFeedUrl(regio) {
-  return `https://feeds.p2000-online.net/${regio}.xml`;
-}
-
 function extractCodeTag(title) {
-  const tags = ['A1', 'A2', 'B1', 'B2', 'PRIO 1'];
-  for (let tag of tags) {
-    if (title.toUpperCase().includes(tag)) {
-      return `<span class="tag ${tag.toLowerCase().replace(' ', '')}">${tag}</span>`;
-    }
+  // Bijvoorbeeld: "[A1] Brand in woning" → A1
+  const match = title.match(/\[(.*?)\]/);
+  if (match) {
+    return match[1];
   }
   return '';
 }
 
-async function laadMeldingen() {
-  const regio = regioSelector.value;
-  const zoekterm = zoekInput.value.toLowerCase();
-  lijst.innerHTML = '<li>Meldingen worden geladen...</li>';
-  try {
-    const response = await fetch(`proxy.php?feed=${getFeedUrl(regio)}`);
-    const data = await response.json();
-    lijst.innerHTML = '';
+function laadMeldingen() {
+  lijst.setAttribute('aria-busy', 'true');
+  lijst.innerHTML = '<li>Laden van meldingen...</li>';
 
-    const meldingen = data.items.filter(item =>
-      item.title.toLowerCase().includes(zoekterm)
-    ).slice(0, 20);
+  const feedUrl = encodeURIComponent(regioSelector.value);
+  const proxyUrl = `/.netlify/functions/proxy?feed=${feedUrl}`;
 
-    if (meldingen.length === 0) {
-      lijst.innerHTML = '<li>Geen meldingen gevonden.</li>';
-      return;
-    }
+  fetch(proxyUrl)
+    .then(res => {
+      if (!res.ok) throw new Error('Fout bij ophalen feed');
+      return res.text();
+    })
+    .then(str => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(str, "application/xml");
 
-    meldingen.forEach(item => {
-      const li = document.createElement('li');
-      const tag = extractCodeTag(item.title);
-      const time = new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      li.innerHTML = `<strong>[${time}]</strong> ${item.title} ${tag}`;
-      lijst.appendChild(li);
+      const items = xml.querySelectorAll('item');
+      if (items.length === 0) {
+        lijst.innerHTML = '<li>Geen meldingen gevonden.</li>';
+        lijst.removeAttribute('aria-busy');
+        return;
+      }
+
+      const filterTerm = zoekInput.value.toLowerCase();
+
+      let html = '';
+      items.forEach(item => {
+        const title = item.querySelector('title')?.textContent || '';
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
+        const link = item.querySelector('link')?.textContent || '';
+        const codeTag = extractCodeTag(title);
+
+        if (filterTerm && !title.toLowerCase().includes(filterTerm)) return;
+
+        const isPrio1 = codeTag.toLowerCase() === 'prio 1' || codeTag.toLowerCase() === 'prio1';
+
+        html += `
+          <li class="${isPrio1 ? 'prio1' : ''}">
+            <strong>${codeTag ? `[${codeTag}] ` : ''}</strong> 
+            <a href="${link}" target="_blank" rel="noopener noreferrer">${title.replace(/\[.*?\]\s*/, '')}</a>
+            <br />
+            <small>${new Date(pubDate).toLocaleString('nl-NL')}</small>
+          </li>
+        `;
+      });
+
+      lijst.innerHTML = html || '<li>Geen meldingen gevonden.</li>';
+      lijst.removeAttribute('aria-busy');
+    })
+    .catch(err => {
+      lijst.innerHTML = `<li class="prio1">Fout bij het laden van meldingen: ${err.message}</li>`;
+      lijst.removeAttribute('aria-busy');
     });
-  } catch (e) {
-    lijst.innerHTML = '<li>Fout bij laden van meldingen.</li>';
-    console.error(e);
-  }
 }
 
-regioSelector.addEventListener('change', laadMeldingen);
-zoekInput.addEventListener('input', laadMeldingen);
-darkToggle.addEventListener('change', () => {
-  document.body.classList.toggle('dark');
+// Event listeners
+regioSelector.addEventListener('change', () => {
+  laadMeldingen();
 });
 
-laadMeldingen();
-setInterval(laadMeldingen, 20000);
+zoekInput.addEventListener('input', () => {
+  laadMeldingen();
+});
+
+darkToggle.addEventListener('change', () => {
+  document.body.classList.toggle('dark', darkToggle.checked);
+});
+
+// Initial load
+window.addEventListener('load', () => {
+  laadMeldingen();
+});
